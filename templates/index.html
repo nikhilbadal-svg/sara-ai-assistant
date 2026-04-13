@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SARA - Smart Autonomous Responsive Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* Inline CSS for production */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Orbitron', monospace;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            color: #00ff88;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            flex: 1;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #00ff88;
+            padding-bottom: 20px;
+        }
+        
+        .sara-text {
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px #00ff88;
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+            color: #00ccff;
+            margin-top: 10px;
+        }
+        
+        .developer-credit {
+            color: #888;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+        
+        .main-interface {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .chat-container {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 500px;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding-right: 10px;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .user-message {
+            background: rgba(0, 204, 255, 0.2);
+            border-left: 3px solid #00ccff;
+            margin-left: 20px;
+        }
+        
+        .sara-message {
+            background: rgba(0, 255, 136, 0.2);
+            border-left: 3px solid #00ff88;
+            margin-right: 20px;
+        }
+        
+        .input-panel {
+            border-top: 1px solid #00ff88;
+            padding-top: 15px;
+        }
+        
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+        
+        #user-input {
+            flex: 1;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            border-radius: 20px;
+            padding: 10px 15px;
+            color: #00ff88;
+            font-family: 'Orbitron', monospace;
+            outline: none;
+        }
+        
+        #user-input:focus {
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+        }
+        
+        .control-btn {
+            background: linear-gradient(45deg, #00ff88, #00ccff);
+            border: none;
+            border-radius: 20px;
+            padding: 10px 20px;
+            color: #000;
+            font-family: 'Orbitron', monospace;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
+        }
+        
+        .status-panel {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            border-radius: 15px;
+            padding: 20px;
+        }
+        
+        .status-indicator {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .pulse-ring {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #00ff88;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(0, 255, 136, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .quick-actions {
+            margin-top: 20px;
+        }
+        
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .action-btn {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid #00ff88;
+            border-radius: 8px;
+            padding: 10px;
+            color: #00ff88;
+            font-family: 'Orbitron', monospace;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .action-btn:hover {
+            background: rgba(0, 255, 136, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        @media (max-width: 768px) {
+            .main-interface {
+                grid-template-columns: 1fr;
+            }
+            .sara-text {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="sara-text">S.A.R.A.</h1>
+            <div class="subtitle">Smart Autonomous Responsive Assistant</div>
+            <div class="developer-credit">Created by Nikhil Badal</div>
+        </header>
+
+        <main class="main-interface">
+            <div class="chat-container">
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message sara-message">
+                        <strong>SARA:</strong> Hello! I am SARA, your Smart Autonomous Responsive Assistant, created by Nikhil Badal. How can I assist you today?
+                    </div>
+                </div>
+
+                <div class="input-panel">
+                    <div class="input-container">
+                        <input type="text" id="user-input" placeholder="Ask SARA anything..." autocomplete="off">
+                        <button id="send-btn" class="control-btn">Send</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="status-panel">
+                <div class="status-indicator">
+                    <div class="pulse-ring"></div>
+                    <div class="status-text">Ready</div>
+                </div>
+            </div>
+        </main>
+
+        <div class="quick-actions">
+            <h3>Quick Actions</h3>
+            <div class="action-grid">
+                <button class="action-btn" onclick="sendQuickCommand('Hello SARA')">Greet SARA</button>
+                <button class="action-btn" onclick="sendQuickCommand('What time is it?')">Current Time</button>
+                <button class="action-btn" onclick="sendQuickCommand('Who created you?')">About Creator</button>
+                <button class="action-btn" onclick="sendQuickCommand('What can you do?')">Your Capabilities</button>
+                <button class="action-btn" onclick="sendQuickCommand('Tell me a joke')">Tell Joke</button>
+                <button class="action-btn" onclick="sendQuickCommand('Help me')">Get Help</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        // SARA Interface JavaScript - Embedded for production
+        class SARAInterface {
+            constructor() {
+                this.socket = io();
+                this.initializeElements();
+                this.bindEvents();
+                this.connectSocket();
+            }
+            
+            initializeElements() {
+                this.userInput = document.getElementById('user-input');
+                this.sendBtn = document.getElementById('send-btn');
+                this.chatMessages = document.getElementById('chat-messages');
+            }
+            
+            bindEvents() {
+                this.userInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.sendMessage();
+                    }
+                });
+                
+                this.sendBtn.addEventListener('click', () => this.sendMessage());
+                this.userInput.focus();
+            }
+            
+            connectSocket() {
+                this.socket.on('connect', () => {
+                    console.log('Connected to SARA server');
+                });
+                
+                this.socket.on('sara_response', (data) => {
+                    this.addMessage(data.text, 'sara');
+                });
+                
+                this.socket.on('error', (data) => {
+                    this.addMessage(`Error: ${data.message}`, 'sara');
+                });
+            }
+            
+            async sendMessage() {
+                const message = this.userInput.value.trim();
+                if (!message) return;
+                
+                this.addMessage(message, 'user');
+                this.userInput.value = '';
+                
+                try {
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ message: message })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.response) {
+                        this.addMessage(data.response, 'sara');
+                    } else if (data.error) {
+                        this.addMessage(`Error: ${data.error}`, 'sara');
+                    }
+                } catch (error) {
+                    this.addMessage('Connection error. Please try again.', 'sara');
+                }
+            }
+            
+            addMessage(text, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message', `${sender}-message`);
+                
+                messageDiv.innerHTML = `
+                    <strong>${sender.toUpperCase()}:</strong> ${text}
+                `;
+                
+                this.chatMessages.appendChild(messageDiv);
+                this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+            }
+        }
+        
+        // Global functions
+        function sendQuickCommand(command) {
+            if (window.saraInterface) {
+                window.saraInterface.userInput.value = command;
+                window.saraInterface.sendMessage();
+            }
+        }
+        
+        // Initialize SARA
+        document.addEventListener('DOMContentLoaded', () => {
+            window.saraInterface = new SARAInterface();
+        });
+    </script>
+</body>
+</html>
