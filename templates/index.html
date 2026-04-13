@@ -260,55 +260,77 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-    <script>
-        // SARA Interface JavaScript - Embedded for production
-        class SARAInterface {
-            constructor() {
-                this.socket = io();
-                this.initializeElements();
-                this.bindEvents();
-                this.connectSocket();
-            }
+    <!-- Add this script section to handle SocketIO fallback -->
+<script>
+    // SARA Interface with SocketIO fallback
+    class SARAInterface {
+        constructor() {
+            this.socketAvailable = typeof io !== 'undefined';
             
-            initializeElements() {
-                this.userInput = document.getElementById('user-input');
-                this.sendBtn = document.getElementById('send-btn');
-                this.chatMessages = document.getElementById('chat-messages');
-            }
-            
-            bindEvents() {
-                this.userInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        this.sendMessage();
-                    }
-                });
-                
-                this.sendBtn.addEventListener('click', () => this.sendMessage());
-                this.userInput.focus();
-            }
-            
-            connectSocket() {
-                this.socket.on('connect', () => {
-                    console.log('Connected to SARA server');
-                });
-                
-                this.socket.on('sara_response', (data) => {
-                    this.addMessage(data.text, 'sara');
-                });
-                
-                this.socket.on('error', (data) => {
-                    this.addMessage(`Error: ${data.message}`, 'sara');
-                });
-            }
-            
-            async sendMessage() {
-                const message = this.userInput.value.trim();
-                if (!message) return;
-                
-                this.addMessage(message, 'user');
-                this.userInput.value = '';
-                
+            if (this.socketAvailable) {
                 try {
+                    this.socket = io();
+                    this.connectSocket();
+                    console.log('SocketIO connection established');
+                } catch (error) {
+                    console.warn('SocketIO failed, using HTTP fallback');
+                    this.socketAvailable = false;
+                }
+            }
+            
+            this.initializeElements();
+            this.bindEvents();
+        }
+        
+        initializeElements() {
+            this.userInput = document.getElementById('user-input');
+            this.sendBtn = document.getElementById('send-btn');
+            this.chatMessages = document.getElementById('chat-messages');
+        }
+        
+        bindEvents() {
+            this.userInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    this.sendMessage();
+                }
+            });
+            
+            this.sendBtn.addEventListener('click', () => this.sendMessage());
+            this.userInput.focus();
+        }
+        
+        connectSocket() {
+            if (!this.socketAvailable) return;
+            
+            this.socket.on('connect', () => {
+                console.log('Connected to SARA server via SocketIO');
+            });
+            
+            this.socket.on('sara_response', (data) => {
+                this.addMessage(data.text, 'sara');
+            });
+            
+            this.socket.on('error', (data) => {
+                this.addMessage(`Error: ${data.message}`, 'sara');
+            });
+        }
+        
+        async sendMessage() {
+            const message = this.userInput.value.trim();
+            if (!message) return;
+            
+            this.addMessage(message, 'user');
+            this.userInput.value = '';
+            
+            // Show typing indicator
+            this.showTypingIndicator();
+            
+            try {
+                if (this.socketAvailable) {
+                    // Use SocketIO if available
+                    this.socket.emit('send_message', { message: message });
+                } else {
+                    // Fallback to HTTP
                     const response = await fetch('/api/chat', {
                         method: 'POST',
                         headers: {
@@ -319,41 +341,71 @@
                     
                     const data = await response.json();
                     
+                    this.hideTypingIndicator();
+                    
                     if (data.response) {
                         this.addMessage(data.response, 'sara');
                     } else if (data.error) {
                         this.addMessage(`Error: ${data.error}`, 'sara');
                     }
-                } catch (error) {
-                    this.addMessage('Connection error. Please try again.', 'sara');
                 }
+            } catch (error) {
+                this.hideTypingIndicator();
+                this.addMessage('Connection error. Please try again.', 'sara');
             }
+        }
+        
+        addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', `${sender}-message`);
             
-            addMessage(text, sender) {
-                const messageDiv = document.createElement('div');
-                messageDiv.classList.add('message', `${sender}-message`);
-                
-                messageDiv.innerHTML = `
-                    <strong>${sender.toUpperCase()}:</strong> ${text}
-                `;
-                
-                this.chatMessages.appendChild(messageDiv);
-                this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
-            }
+            messageDiv.innerHTML = `
+                <strong>${sender.toUpperCase()}:</strong> ${text}
+            `;
+            
+            this.chatMessages.appendChild(messageDiv);
+            this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
         }
         
-        // Global functions
-        function sendQuickCommand(command) {
-            if (window.saraInterface) {
-                window.saraInterface.userInput.value = command;
-                window.saraInterface.sendMessage();
-            }
+        showTypingIndicator() {
+            this.hideTypingIndicator();
+            
+            const typingDiv = document.createElement('div');
+            typingDiv.classList.add('message', 'sara-message', 'typing-indicator');
+            typingDiv.innerHTML = '<strong>SARA:</strong> <em>Thinking...</em>';
+            
+            this.chatMessages.appendChild(typingDiv);
+            this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
         }
         
-        // Initialize SARA
-        document.addEventListener('DOMContentLoaded', () => {
-            window.saraInterface = new SARAInterface();
-        });
-    </script>
+        hideTypingIndicator() {
+            const typingIndicator = this.chatMessages.querySelector('.typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+    }
+    
+    // Global functions
+    function sendQuickCommand(command) {
+        if (window.saraInterface) {
+            window.saraInterface.userInput.value = command;
+            window.saraInterface.sendMessage();
+        }
+    }
+    
+    // Initialize SARA
+    document.addEventListener('DOMContentLoaded', () => {
+        window.saraInterface = new SARAInterface();
+        
+        // Test connection
+        setTimeout(() => {
+            window.saraInterface.addMessage(
+                'Hello! I am SARA, created by Nikhil Badal. I am ready to assist you!', 
+                'sara'
+            );
+        }, 1000);
+    });
+</script>
 </body>
 </html>
